@@ -4,3 +4,4 @@ dist/
 .gradle/
 build/
 *.sc
+mockito-scala.iml

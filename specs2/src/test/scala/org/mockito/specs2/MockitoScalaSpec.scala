@@ -10,11 +10,16 @@ import org.specs2.control.Exceptions._
 import org.specs2.execute._
 import org.specs2.matcher.MatchersImplicits._
 import org.specs2.matcher._
+import ActionMatchers._
+import org.specs2.fp._
+import org.specs2.fp.syntax._
 import org.specs2.specification._
+import org.specs2.specification.core._
 import org.specs2.specification.core.Env
-
+import org.specs2.specification.process._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+
 
 class MockitoScalaSpec extends script.Spec with Mockito with Groups {
   def is =
@@ -501,32 +506,34 @@ ${step(env)}                                                                    
     }
   }
 
-//  "other contexts" - new group {
-//    eg := {
-//      val s = new org.specs2.mutable.Specification with Specs2Mockito {
-//        val list = mock[java.util.List[String]]
-//        "ex1" in {
-//          list.add("one")
-//          list.add("two") was called
-//          1 must_== 1 // to check if the previous expectation really fails
-//        }
-//      }
-//      DefaultExecutor.runSpec(s.is, env).filter(Fragment.isExample).traverse(_.executionResult.map(_.isSuccess)) must beOk(contain(false))
-//    }
-//
-//    eg := {
-//      val s = new org.specs2.mutable.Specification with Specs2Mockito {
-//        "ex1" in new org.specs2.specification.Scope {
-//          val (list1, list2) = (mock[java.util.List[String]], mock[java.util.List[String]])
-//          list1.add("two"); list2.add("one")
-//          InOrder(list1, list2) { implicit order =>
-//            (list2.add("two") was called) and (list1.add("one") was called)
-//          }
-//        }
-//      }
-//      DefaultExecutor.runSpec(s.is, env).filter(Fragment.isExample).traverse(_.executionResult.map(_.isSuccess)) must beOk(contain(false))
-//    }
-//  }
+  "other contexts" - new group {
+    eg := {
+      val s = new org.specs2.mutable.Specification with Mockito {
+        val list = mock[java.util.List[String]]
+        "ex1" in {
+          list.add("one")
+          list.add("two") was called
+          1 must_== 1 // to check if the previous expectation really fails
+        }
+      }
+      DefaultExecutor.runSpec(s.is, env).filter(Fragment.isExample).traverse(_.executionResult.map(_.isSuccess)) must
+        beOk((list: List[Boolean]) => list must contain(false))
+    }
+
+    eg := {
+      val s = new org.specs2.mutable.Specification with Mockito {
+        "ex1" in new org.specs2.specification.Scope {
+          val (list1, list2) = (mock[java.util.List[String]], mock[java.util.List[String]])
+          list1.add("two"); list2.add("one")
+          InOrder(list1, list2) { implicit order =>
+            (list2.add("two") was called) and (list1.add("one") was called)
+          }
+        }
+      }
+      DefaultExecutor.runSpec(s.is, env).filter(Fragment.isExample).traverse(_.executionResult.map(_.isSuccess)) must
+        beOk((list: List[Boolean]) => list must contain(false))
+    }
+  }
 
   "mockito matchers" - new group with Mockito with ThrownExpectations {
     trait M {
